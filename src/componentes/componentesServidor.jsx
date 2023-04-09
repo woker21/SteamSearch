@@ -1,41 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
 
-const Character = () => {
-    const [data, setData] = useState(null);
+function App() {
+  const [characters, setCharacters] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const result = await axios.get('https://rickandmortyapi.com/api/character/41');
-                setData(result.data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                throw error;
-            }
-        };
-        fetchData();
-    }, []);
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      let url = `https://rickandmortyapi.com/api/character/?page=${page}`;
+      if (searchTerm) {
+        url = `https://rickandmortyapi.com/api/character/?name=${searchTerm}&page=${page}`;
+      }
+      const response = await fetch(url);
+      const data = await response.json();
+      setCharacters(data.results);
+    };
+    fetchCharacters();
+  }, [searchTerm, page]);
 
-    return (
-        <div>
-            {data ? (
-                <div>
-                    <h2>{data.name}</h2>
-                    <img src={data.image} alt={data.name} />
-                    <p>Status: {data.status}</p>
-                    <p>Species: {data.species}</p>
-                    <p>Gender: {data.gender}</p>
-                </div>
-            ) : (
-                <p>Loading...</p>
-            )}
-        </div>
-    );
-};
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+    setPage(1);
+  };
 
-export default Character;
+  const handlePrevPage = () => {
+    setPage((prevPage) => prevPage - 1);
+  };
 
+  const handleNextPage = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
 
+  return (
+    <div className="App">
+      <h1>Rick and Morty Characters</h1>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search by character name"
+          onChange={handleSearch}
+        />
+      </div>
+      <div className="characters-container">
+        {characters.map((character) => (
+          <div key={character.id} className="character-card">
+            <img src={character.image} alt={character.name} />
+            <h2>{character.name}</h2>
+            <p>Status: {character.status}</p>
+            <p>Species: {character.species}</p>
+            <p>Gender: {character.gender}</p>
+            <p>Origin: {character.origin.name}</p>
+            <p>Location: {character.location.name}</p>
+          </div>
+        ))}
+      </div>
+      <div className="pagination">
+        <button onClick={handlePrevPage} disabled={page === 1}>
+          Previous Page
+        </button>
+        <button onClick={handleNextPage}>Next Page</button>
+      </div>
+    </div>
+  );
+}
 
-//steamsearch-10621
+export default App;
